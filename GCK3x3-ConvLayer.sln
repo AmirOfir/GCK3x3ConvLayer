@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.757
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CPP-PyTorch-Ext", "CPP-PyTorch-Ext\CPP-PyTorch-Ext.vcxproj", "{ECCF9446-2963-4149-BF33-BB216347B907}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "CPP-PyTorch-Ext-Py", "CPP-PyTorch-Ext\CPP-PyTorch-Ext-Py.pyproj", "{AC69BDE6-B46F-49D1-871A-D4CAB1089C45}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ECCF9446-2963-4149-BF33-BB216347B907}.Debug|x64.ActiveCfg = Debug|x64
+		{ECCF9446-2963-4149-BF33-BB216347B907}.Debug|x64.Build.0 = Debug|x64
+		{ECCF9446-2963-4149-BF33-BB216347B907}.Release|x64.ActiveCfg = Release|x64
+		{ECCF9446-2963-4149-BF33-BB216347B907}.Release|x64.Build.0 = Release|x64
+		{AC69BDE6-B46F-49D1-871A-D4CAB1089C45}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AC69BDE6-B46F-49D1-871A-D4CAB1089C45}.Release|x64.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D833E12F-4344-4C66-91FF-3AFA651A4F37}
+	EndGlobalSection
+EndGlobal

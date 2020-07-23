@@ -1,0 +1,11 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+build/
+Debug/
+dist/
+gck_cpp.egg-info/
+x64/
+/CPP-PyTorch-Ext/__pycache__
