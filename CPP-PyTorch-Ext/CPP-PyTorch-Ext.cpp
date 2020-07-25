@@ -107,8 +107,6 @@ inline ThreadPool::~ThreadPool()
 
 #pragma endregion
 
-//ThreadPool threadPool(4);
-
 void DeleteArray(DTYPE **arr, int outerArrayDim)
 {
 	int i;
@@ -454,28 +452,64 @@ void GCKSequentialConvolution_Row(const DTYPE *last_convolved, DTYPE *res, const
 	}
 }
 
-/*
-	Colwise Convolution
-*/
-void ConvolutionColwiseFirstKernel(const DTYPE *input, DTYPE *res, const size_t input_dim, const size_t result_dim)
+void ConvolutionColwise(const DTYPE *input, DTYPE **res, const size_t input_dim, const size_t input_size, const size_t result_dim)
 {
+    register DTYPE a, b, c;
+    int reset = input_dim;
+    DTYPE *first = res[0];
+    DTYPE *second = res[1];
+    DTYPE *third = res[2];
+    for (size_t i = 0; i < input_size;)
+    {
+        a = input[i++];
+        b = input[i++];
+        c = input[i++];
+        *first = (a + b + c);
+        ++first;
+        *second = (a - b + c);
+        ++second;
+        *third = (a + b - c);
+        ++third;
+        if (i == reset) {
+            i += 2;
+            reset += input_dim;
+        }
+    }
+}
+void ConvolutionRowwise(DTYPE **res, const int row, const size_t input_dim)
+{
+    DTYPE *inp = res[row];
+    DTYPE *second = res[row + 3];
+    DTYPE *third = res[row + 6];
+    const auto twoRows = input_dim * 2;
+    register DTYPE a, b, c;
+    for (size_t row = 0; row < input_dim; row++)
+    {
+        for (size_t col = 0; col < input_dim; col++)
+        {
+            a = *inp;
+            b = inp[input_dim];
+            c = inp[twoRows];
+            *inp = (a + b + c);
+            *second = (a - b + c);
+            *third = (a + b - c);
+        }
+    }
 
 }
-void ConvolutionColwise(const DTYPE *input, DTYPE **res, const size_t input_dim, const size_t result_dim)
-{
-	GCKConvolutionFirstKernel4x4(input, res, input_dim, input_dim * input_dim, result_dim, result_dim*result_dim);
-}
+
 
 void Convolution3x3ToBasis(const DTYPE *input, DTYPE **res, const size_t input_dim, const size_t result_dim)
 {
-    DTYPE x = 0;
-    for (size_t i = 0; i < 16; i++)
-    {
-        for (size_t j = 0; j < input_dim * input_dim; j++)
-        {
-            x += input[j];
-        }
-    }
+    const size_t inputSize = input_dim * input_dim;
+    ConvolutionColwise(input, res, input_dim, inputSize, result_dim);
+
+    auto a = async(std::launch::async, &ConvolutionRowwise, res, 0, input_dim);
+    auto b = async(std::launch::async, &ConvolutionRowwise, res, 1, input_dim);
+    auto c = async(std::launch::async, &ConvolutionRowwise, res, 2, input_dim);
+    a.wait();
+	b.wait();
+	c.wait();
     /*const int colwise_size = input_dim * result_dim;
     DTYPE **res = new DTYPE*[9];
     for (auto i = 0; i < 9; i++)

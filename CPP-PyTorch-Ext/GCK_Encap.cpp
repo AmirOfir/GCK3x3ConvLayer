@@ -73,8 +73,10 @@ Installer m;
 
 // LinCombs shape: (out_channels, in_channels*9). Assumed to be contiguous
 // basisResultsTensor shape: (in_channels*9, H*W). Assumed to be contiguous. values are discarded
-torch::Tensor conv_fwd_3x3(const torch::Tensor &input_tensor, const torch::Tensor &linCombs, torch::Tensor &basisResultsTensor)
+torch::Tensor forward(const torch::Tensor &input_tensor, const torch::Tensor &linCombs, torch::Tensor &basisResultsTensor, 
+    void (*convolution3x3ToBasis)(const float *, float **res, const size_t input_dim, const size_t result_dim))
 {
+    
 	const torch::Tensor input = input_tensor.contiguous();
     auto options = torch::TensorOptions().dtype(torch::kF32).requires_grad(false).is_variable(false);
 
@@ -105,7 +107,7 @@ torch::Tensor conv_fwd_3x3(const torch::Tensor &input_tensor, const torch::Tenso
 			    basisResults2d[i] = lastUsedBasisResult;
                 lastUsedBasisResult += resultSize;
 		    }
-		    Convolution3x3ToBasis(inpPtr, basisResults2d, inputDim, resultDim);
+            convolution3x3ToBasis(inpPtr, basisResults2d, inputDim, resultDim);
             inpPtr += inputSize;
         }
        
@@ -117,7 +119,19 @@ torch::Tensor conv_fwd_3x3(const torch::Tensor &input_tensor, const torch::Tenso
     return ret;
 }
 
+torch::Tensor conv_fwd_3x3(const torch::Tensor &input_tensor, const torch::Tensor &linCombs, torch::Tensor &basisResultsTensor)
+{
+    return forward(input_tensor, linCombs, basisResultsTensor, &Convolution3x3ToBasis);
+}
+
+void nop(const float *, float **res, const size_t input_dim, const size_t result_dim) { }
+torch::Tensor matmul_only(const torch::Tensor &input_tensor, const torch::Tensor &linCombs, torch::Tensor &basisResultsTensor)
+{
+    return forward(input_tensor, linCombs, basisResultsTensor, &nop);
+}
+
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m)
 {
+    m.def("matmul_only", &matmul_only, "Perform only the second part of the convolution - MatMul");
 	m.def("conv_fwd_3x3", &conv_fwd_3x3, "forward with 3x3 kernel");
 }
