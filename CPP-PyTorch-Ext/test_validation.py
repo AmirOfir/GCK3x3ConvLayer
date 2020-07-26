@@ -7,6 +7,8 @@ import timeit
 import time
 from gck_layer import GCK3x3Layer
 
+kernel_dim = 3
+
 def tensors_equal(a,b):
     b = torch.allclose(a, b, atol=0.01)
     if (b):
@@ -19,20 +21,19 @@ def compareResults(batch_size: int, in_channels: int, out_channels: int, input_d
     kernels = torch.ones(out_channels, in_channels, kernel_dim, kernel_dim, dtype=torch.float32)
     expected = F.conv2d(input, kernels)
 
-    layer = Gck4x4Layer(in_channels, out_channels, 4, False, kernels)
-    
-    #layer.compareBasisConv(input)
-
-    regular_basis_conv = layer.convolveWithBasisRegular(input)
-
-    gck_basis_conv = layer.convolveWithBasisGCK(input)
-
+    layer = GCK3x3Layer(in_channels, out_channels, 3, False, input_dim - 2, kernels)
     result = layer.forward(input)
-    print('regular_basis_conv', regular_basis_conv[0][0])
-    print('gck_basis_conv', gck_basis_conv[0][0])
-    print('result', result[0][0])
-    print('expected', expected[0][0])
-    tensors_equal(expected, result)
-    tensors_equal(expected, regular_basis_conv)
-    tensors_equal(expected, gck_basis_conv)
 
+    tensors_equal(expected, result)
+
+
+lst = [
+    (1,1,8,1024),
+    (1,1,16,256),
+    (1,1,64,512),
+    (1,1,128,512),
+    (1,8,16,128)
+    ]
+
+for batch_size, in_channels, out_channels, input_dim in lst:
+    compareResults(batch_size, in_channels, out_channels, input_dim)
