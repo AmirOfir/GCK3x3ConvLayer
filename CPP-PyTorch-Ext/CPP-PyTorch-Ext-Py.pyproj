@@ -40,6 +40,9 @@
     <Compile Include="time_compare.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="time_compare_2.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>
