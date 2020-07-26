@@ -249,6 +249,22 @@ int **GckBasis(int size, bool verbose = false)
 	return ret;
 }
 
+int **GCK3x3Basis()
+{
+    int **ret = new int*[9];
+
+    int vec[3][3]{ {1,1,1}, {1,-1,1}, {1,1,-1} };
+    
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            int *curr = ret[i * 3 + j] = new int[9];
+            OuterProduct(&(vec[i][0]), &(vec[j][0]), curr, 3, 3);
+        }
+    }
+    return ret;
+}
 #pragma endregion
 
 #pragma region Data Creation
@@ -372,6 +388,10 @@ DTYPE *CreateArray(int size, int flag)
 			break;
 		case 5:
 			input[i] = (int)(randomGenerator(randomGeneratorEngine) * 10);
+            break;
+        case 6:
+            input[i] = i % 10;
+            break;
 		}
 	}
 	return input;
@@ -532,12 +552,50 @@ DTYPE **Conv2dCpuPad(DTYPE *input, DTYPE **kernels, int kernelsCount, int input_
 
 #pragma endregion
 
+#pragma region Tests
 
+void Print3x3Basis()
+{
+    auto basis = GCK3x3Basis();
+    for (size_t i = 0; i < 9; i++)
+    {
+        PrintMat(basis[i], 3);
+        cout << endl;
+    }
+}
+void ValidateConvToBasis()
+{
+    auto basis = GCK3x3Basis();
+    for (int input_method = 0; input_method <= 6; input_method++)
+    {
+        int input_dim = 10;
+        int result_dim = ResultDim(10, 3, 0, 1),
+            result_size = result_dim * result_dim;
+
+        auto input = CreateInput(input_dim, input_method);
+
+        auto expected = Conv2dCpu(input, basis, 9, input_dim, 3, 0, 1, result_dim, result_size);
+
+        DTYPE **actual = CreateMatrix(9, result_size, -999);
+        Convolution3x3ToBasis(input, actual, input_dim, result_dim);
+        
+        for (auto inspectedResultIx = 0; inspectedResultIx < 9; ++inspectedResultIx)
+		{
+			bool equal = MatricesEqual(actual[inspectedResultIx], expected[inspectedResultIx], result_dim);
+			assert(equal, "Invalid");
+		}
+        cout << "input method " << input_method << " passed." << endl;
+    }
+}
+#pragma endregion
 
 int main()
 {
-	
+    
+    
+    
+    
 
-	
+    
     //std::cout << "Hello World!\n" << a(); 
 }

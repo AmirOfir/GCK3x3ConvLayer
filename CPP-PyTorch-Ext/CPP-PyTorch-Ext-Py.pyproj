@@ -22,13 +22,22 @@
     <InterpreterReference Include="CondaEnv|CondaEnv|pt" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="hhw_layer.py">
+    <Compile Include="compare_conv_to_matmul.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="setup_hhw.py">
+    <Compile Include="gck_layer.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="python-only-compare.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="setup_gck.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test_validation.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="time_compare.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

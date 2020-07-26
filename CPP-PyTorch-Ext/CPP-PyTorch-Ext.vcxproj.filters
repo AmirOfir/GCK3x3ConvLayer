@@ -16,12 +16,15 @@
     <ClCompile Include="entry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HHW_Encap.cpp">
+    <ClCompile Include="GCK_Encap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GCKConv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

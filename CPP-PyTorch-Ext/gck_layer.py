@@ -5,10 +5,15 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-import gck_cpu_cpp
+from gck_cpu_cpp import conv_fwd_3x3
+
+''' 
+    Data preperation (find linear combinations)
+    -------------------------------------------
+'''
 
 def GCKBasisMatrix() -> (torch.Tensor):
-    vec = torch.Tensor([
+    vecs = torch.Tensor([
         [1,1,1], [1,-1,1], [1,1,-1]
         ])
     basis = []
@@ -16,26 +21,19 @@ def GCKBasisMatrix() -> (torch.Tensor):
         for j in range(len(vecs)):
             mat = torch.ger(vecs[i], vecs[j])
             basis.append(mat)
-      #ret = torch.Tensor([
-      #    [[1,1,1], [1,1,1], [1,1,1]],
-      #    [[1,-1,1], [
-      #    [[1,1,1], [-1,-1,-1], [1,1,1]],
-      #    [[1,1,1], [1,1,1], [-1,-1,-1]],
-
-      #        ])
     ret = torch.stack(basis)
     ret.requires_grad = False
     return ret
-''' Finds comb '''
 def linCombPrepareBasis(basis, dtype=torch.float, verbose=False) -> torch.Tensor:
-  B = len(basis) ** 2 # Basis shape is (Rows, Cols, basis_rows, basis_cols). Rows == Cols, basis_rows == basis_cols so Rows^2==Rows*Cols
-  basis_flat = basis.reshape(B, -1).transpose(0,1).to(dtype)
-  basis_flat_inv = torch.inverse(basis_flat)
-  return basis_flat_inv
+    # Basis shape is (Rows, Cols, basis_rows, basis_cols). Rows == Cols, basis_rows == basis_cols so Rows^2==Rows*Cols
+    B = len(basis) ** 2 
+    basis_flat = basis.reshape(B, -1).transpose(0,1).to(dtype)
+    basis_flat_inv = torch.inverse(basis_flat)
+    return basis_flat_inv
 def linCombWeights(basis_inv, weights, dtype=torch.float, verbose=False):
-  w_mat = weights.reshape((len(weights), -1)).transpose(0,1).to(dtype)
-  comb = basis_inv @ w_mat
-  return torch.squeeze(comb, 1)
+    w_mat = weights.reshape((len(weights), -1)).transpose(0,1).to(dtype)
+    comb = basis_inv @ w_mat
+    return torch.squeeze(comb, 1)
 def resultDim(input_dim, kernel_dim, pad=0, stride=1):
     s = math.floor((input_dim - kernel_dim + pad + pad) / stride) + 1
     return int(s)
