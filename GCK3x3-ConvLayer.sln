@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.757
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CPP-PyTorch-Ext", "CPP-PyTorch-Ext\CPP-PyTorch-Ext.vcxproj", "{ECCF9446-2963-4149-BF33-BB216347B907}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CPU-PyTorch-Ext", "CPP-PyTorch-Ext\CPP-PyTorch-Ext.vcxproj", "{ECCF9446-2963-4149-BF33-BB216347B907}"
 EndProject
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "CPP-PyTorch-Ext-Py", "CPP-PyTorch-Ext\CPP-PyTorch-Ext-Py.pyproj", "{AC69BDE6-B46F-49D1-871A-D4CAB1089C45}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "CPU-PyTorch-Ext-Py", "CPP-PyTorch-Ext\CPU-PyTorch-Ext-Py.pyproj", "{AC69BDE6-B46F-49D1-871A-D4CAB1089C45}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
