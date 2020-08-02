@@ -7,18 +7,38 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CPU-PyTorch-Ext", "CPP-PyTo
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "CPU-PyTorch-Ext-Py", "CPP-PyTorch-Ext\CPU-PyTorch-Ext-Py.pyproj", "{AC69BDE6-B46F-49D1-871A-D4CAB1089C45}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GPU-PyTorch-Ext", "GPU-PyTorch-Ext\GPU-PyTorch-Ext.vcxproj", "{F167EB44-F57D-4DBB-BC74-582EBA930DBB}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "GPU-PyTorch-Ext-Py", "GPU-PyTorch-Ext\GPU-PyTorch-Ext-Py.pyproj", "{791518BB-F69D-4DED-ACE4-5275346E1E70}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ECCF9446-2963-4149-BF33-BB216347B907}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{ECCF9446-2963-4149-BF33-BB216347B907}.Debug|x64.ActiveCfg = Debug|x64
 		{ECCF9446-2963-4149-BF33-BB216347B907}.Debug|x64.Build.0 = Debug|x64
+		{ECCF9446-2963-4149-BF33-BB216347B907}.Release|Any CPU.ActiveCfg = Release|Win32
 		{ECCF9446-2963-4149-BF33-BB216347B907}.Release|x64.ActiveCfg = Release|x64
 		{ECCF9446-2963-4149-BF33-BB216347B907}.Release|x64.Build.0 = Release|x64
+		{AC69BDE6-B46F-49D1-871A-D4CAB1089C45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AC69BDE6-B46F-49D1-871A-D4CAB1089C45}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AC69BDE6-B46F-49D1-871A-D4CAB1089C45}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AC69BDE6-B46F-49D1-871A-D4CAB1089C45}.Release|x64.ActiveCfg = Release|Any CPU
+		{F167EB44-F57D-4DBB-BC74-582EBA930DBB}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{F167EB44-F57D-4DBB-BC74-582EBA930DBB}.Debug|x64.ActiveCfg = Debug|x64
+		{F167EB44-F57D-4DBB-BC74-582EBA930DBB}.Debug|x64.Build.0 = Debug|x64
+		{F167EB44-F57D-4DBB-BC74-582EBA930DBB}.Release|Any CPU.ActiveCfg = Release|x64
+		{F167EB44-F57D-4DBB-BC74-582EBA930DBB}.Release|x64.ActiveCfg = Release|x64
+		{F167EB44-F57D-4DBB-BC74-582EBA930DBB}.Release|x64.Build.0 = Release|x64
+		{791518BB-F69D-4DED-ACE4-5275346E1E70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{791518BB-F69D-4DED-ACE4-5275346E1E70}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{791518BB-F69D-4DED-ACE4-5275346E1E70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{791518BB-F69D-4DED-ACE4-5275346E1E70}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
