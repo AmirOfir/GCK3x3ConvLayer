@@ -19,6 +19,9 @@
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="compare_conv_to_matmul.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="setup.py" />
   </ItemGroup>
   <ItemGroup>
