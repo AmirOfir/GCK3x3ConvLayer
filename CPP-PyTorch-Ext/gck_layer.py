@@ -40,16 +40,25 @@ def ResultDim(input_dim, kernel_dim, pad=0, stride=1):
 class GCK3x3Layer(torch.nn.Module):
     def __init__(self, in_channels:int, out_channels:int, kernel_size:int, bias:bool, result_dim:int, kernels:torch.Tensor=None):
         self.out_channels = out_channels
-
+        
         if kernels is None:
             kernels = torch.randn((out_channels, in_channels, kernel_size, kernel_size), dtype=torch.float32, requires_grad=False)
 
         basis = GCKBasisMatrix()
         basis_inv = LinCombPrepareBasis(basis)
-        #self.linCombs = torch.stack([LinCombWeights(basis_inv, torch.unsqueeze(kernels[i], 0)) for i in range(len(kernels))])
-        print(kernels.shape)
-        self.linCombs = LinCombWeights(LinCombPrepareBasis(basis), kernels)
-        self.linCombs = self.linCombs.permute(1,0).contiguous()
+        
+        if (in_channels == 1):
+            self.linCombs = LinCombWeights(LinCombPrepareBasis(basis), kernels)
+            self.linCombs = self.linCombs.permute(1,0)
+        else:
+            #print('a', kernels.shape, len(kernels))
+            k = torch.stack([LinCombWeights(basis_inv, kernels[i]) for i in range(len(kernels))])
+            #print('b', k.shape)
+            if (k.dim() != 3): k = k.unsqueeze(0)
+            self.linCombs = k.permute(0,2,1).reshape(out_channels, in_channels * 9)
+            #print('c', k.shape)
+        
+        self.linCombs = self.linCombs.contiguous()
         self.linCombs.requires_grad = False
         
         self.helper = torch.empty((in_channels * 9, result_dim*result_dim)).contiguous()

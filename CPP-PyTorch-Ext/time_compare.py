@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from gck_cpu_cpp import conv_fwd_3x3
+from gck_layer import GCK3x3Layer
 
 repeat_count = 20
 
@@ -28,9 +29,11 @@ def compareTimes(batch_size: int, in_channels: int, out_channels: int, input_dim
     durationWino = round(np.mean(duration),5)
     gc.collect()
 
+    gckLayer = GCK3x3Layer(in_channels, out_channels, 3, False, input_dim - 2, kernel)
 
     def func_to_measure():
-        x = conv_fwd_3x3(input, linCombs, basisResultsTensor)
+        x = gckLayer.forward(input)
+        #x = conv_fwd_3x3(input, linCombs, basisResultsTensor)
         del x
     duration = timeit.repeat(func_to_measure, repeat=repeat_count, number=1)
     durationGCK = round(np.mean(duration),5)
