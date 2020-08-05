@@ -78,7 +78,7 @@ torch::Tensor forward(const torch::Tensor &input_tensor, const torch::Tensor &li
 {
     
 	const torch::Tensor input = input_tensor.contiguous();
-    auto options = torch::TensorOptions().dtype(torch::kF32).requires_grad(false).is_variable(false);
+    auto options = torch::TensorOptions().dtype(torch::kF32).requires_grad(false);
 
 	const DTYPE *inpPtr = input.data<DTYPE>();
 	const int batchSize = input.size(0);
@@ -92,7 +92,7 @@ torch::Tensor forward(const torch::Tensor &input_tensor, const torch::Tensor &li
 	const int outChannels = linCombs.size(0);
     const int basisResultsNum = inChannels * 9;
 
-    const auto resultTensor = torch::empty({ batchSize, outChannels, resultSize }, options);
+    torch::Tensor resultTensor = torch::empty({ outChannels, resultSize }, options);
 
     DTYPE *basisResults = basisResultsTensor.data<DTYPE>();
 	
@@ -110,8 +110,8 @@ torch::Tensor forward(const torch::Tensor &input_tensor, const torch::Tensor &li
             convolution3x3ToBasis(inpPtr, basisResults2d, inputDim, resultDim);
             inpPtr += inputSize;
         }
-       
-        auto batchResults = torch::matmul_out(resultTensor[b_ix], linCombs, basisResultsTensor);
+       torch::Tensor resultTensorBatch = resultTensor[b_ix];
+torch::matmul_out(resultTensorBatch, linCombs, basisResultsTensor);
 	}
 
     auto ret = resultTensor.view({ batchSize, outChannels, resultDim, resultDim });
