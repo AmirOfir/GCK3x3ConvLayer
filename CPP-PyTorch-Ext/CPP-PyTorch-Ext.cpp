@@ -1,12 +1,13 @@
 #ifndef VSA
 #include <torch/extension.h>
-#include <ATen/Parallel.h>
+//#include <ATen/Parallel.h>
+#include <ATen/ParallelOpenMP.h>
 #endif
 
 #include "Header.h"
 #include "ConvImp.h"
 #include <functional>
- #include <execution>
+// #include <execution>
 
 #ifdef VSA
 namespace torch
@@ -120,7 +121,7 @@ torch::Tensor forward(const torch::Tensor &input_tensor, const torch::Tensor &li
          });
         
         // Execute the colwise convolution
-        torch::parallel_for(0, inChannels * 3, 3, [&](int64_t index, int64_t stop) {
+        torch::parallel_for(0, inChannels * 3, 0, [&](int64_t index, int64_t stop) {
             
             DTYPE *rowwiseResultsCurr = rowwiseResults[index].data<DTYPE>();
             DTYPE *colwiseResultsCurr = colwiseResults[index * 3].data<DTYPE>();
