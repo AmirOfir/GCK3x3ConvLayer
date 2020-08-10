@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-from gck_cpu_cpp import conv_fwd_3x3
+from gck_cpu_cpp import conv_fwd_3x3, matmul_only
 
 ''' 
     Data preperation (find linear combinations)
@@ -51,7 +51,6 @@ class GCK3x3Layer(torch.nn.Module):
             self.linCombs = LinCombWeights(LinCombPrepareBasis(basis), kernels)
             self.linCombs = self.linCombs.permute(1,0)
         else:
-            #print('a', kernels.shape, len(kernels))
             k = torch.stack([LinCombWeights(basis_inv, kernels[i]) for i in range(len(kernels))])
             #print('b', k.shape)
             if (k.dim() != 3): k = k.unsqueeze(0)
@@ -61,7 +60,10 @@ class GCK3x3Layer(torch.nn.Module):
         self.linCombs = self.linCombs.contiguous()
         self.linCombs.requires_grad = False
         
-        self.helper = torch.empty((in_channels * 9, result_dim*result_dim)).contiguous()
+        self.rowwiseResults = torch.empty((in_channels * 3, result_dim*(result_dim+2))).contiguous()
+        self.colwiseResults = torch.empty((in_channels * 9, result_dim*result_dim)).contiguous()
     def forward(self, input: torch.Tensor):
-        result = conv_fwd_3x3(input, self.linCombs, self.helper)
+        result = conv_fwd_3x3(input, self.linCombs, self.rowwiseResults, self.colwiseResults)
         return result
+    def matmul_only(self, input: torch.Tensor):
+        return matmul_only(input, self.linCombs, self.rowwiseResults, self.colwiseResults)

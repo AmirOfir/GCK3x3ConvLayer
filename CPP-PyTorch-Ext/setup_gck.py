@@ -6,5 +6,5 @@ from torch.utils import cpp_extension
 setup(name='gck_cpp',
       ext_modules=[
           cpp_extension.CppExtension(
-              'gck_cpu_cpp', ['GCK_Encap.cpp', "CPP-PyTorch-Ext.cpp"])],
+              'gck_cpu_cpp', ['ConvImp.cpp', "CPP-PyTorch-Ext.cpp"])],
       cmdclass={'build_ext': cpp_extension.BuildExtension})
