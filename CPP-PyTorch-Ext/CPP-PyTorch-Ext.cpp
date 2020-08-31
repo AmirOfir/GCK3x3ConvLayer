@@ -1,13 +1,19 @@
 #ifndef VSA
 #include <torch/extension.h>
-//#include <ATen/Parallel.h>
+
+#if __has_include("ATen/Parallel.h") && __has_include(<stdint.h>)
+#include <ATen/Parallel.h>
+#else
 #include <ATen/ParallelOpenMP.h>
+#endif
+
+
+
 #endif
 
 #include "Header.h"
 #include "ConvImp.h"
 #include <functional>
-// #include <execution>
 
 #ifdef VSA
 namespace torch
