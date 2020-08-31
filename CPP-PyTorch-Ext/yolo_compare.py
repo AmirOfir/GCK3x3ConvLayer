@@ -57,8 +57,6 @@ def compareTimes(batch_size: int, in_channels: int, out_channels: int, input_dim
 
     return durationWino, durationGCK, durationMatmul
 
-print('{batch_size}, {in_channels}, {out_channels}, {input_dim}, duration Winograd , duration GCK, Winograd - GCK, GCK / Winograd, duration matmul, Winograd - Matmul')
-
 cross = []
 # YOLO-LITE
 cross.append((1,3,16,224))
@@ -81,10 +79,11 @@ cross.append((1,256,512,7))
 cross.append((1,512,512,7))
 cross.append((1,512,1024,7))
 
+print('{batch_size}, {in_channels}, {out_channels}, {input_dim}, duration Winograd, duration matmul, duration GCK, GCK / Winograd')
 for (batch_size, in_channels, out_channels, input_dim) in cross:
     durationWino, durationGCK, durationMatmul = compareTimes(batch_size, in_channels, out_channels, input_dim)
     diff = round(durationWino - durationGCK, 5)
     per = round((durationGCK / durationWino) * 100, 5)
 
-    print(f'{batch_size}, {in_channels}, {out_channels}, {input_dim}, {durationWino}, {durationGCK}, {diff}, {per}%, {durationMatmul}')
+    print(f'{batch_size}, {in_channels}, {out_channels}, {input_dim}, {durationWino}, {durationMatmul}, {durationGCK}, {per}%, ')
 
