@@ -22,6 +22,9 @@
     <Compile Include="compare_conv_to_matmul.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="python-only-compare.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="setup.py" />
   </ItemGroup>
   <ItemGroup>
