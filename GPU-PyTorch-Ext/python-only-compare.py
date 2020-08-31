@@ -11,10 +11,10 @@ import time
 repeat_count = 20
 device = 'cuda:0'
 def compareTimes(batch_size: int, in_channels: int, out_channels: int, input_dim: int):
-    input = torch.randn(batch_size, in_channels, input_dim, input_dim, requires_grad=False, dtype=torch.float32).contiguous().device(device)
-    linCombs = torch.randn(out_channels, in_channels * 9, requires_grad=False, dtype=torch.float32).contiguous().device(device)
-    basisResultsTensor = torch.randn(in_channels*9, (input_dim-2)**2, requires_grad=False, dtype=torch.float32).contiguous().device(device)
-    kernel = torch.randn(out_channels, in_channels, 3, 3,requires_grad=False, dtype=torch.float32).device(device)
+    input = torch.randn(batch_size, in_channels, input_dim, input_dim, requires_grad=False, dtype=torch.float32).contiguous().to(device)
+    linCombs = torch.randn(out_channels, in_channels * 9, requires_grad=False, dtype=torch.float32).contiguous().to(device)
+    basisResultsTensor = torch.randn(in_channels*9, (input_dim-2)**2, requires_grad=False, dtype=torch.float32).contiguous().to(device)
+    kernel = torch.randn(out_channels, in_channels, 3, 3,requires_grad=False, dtype=torch.float32).to(device)
     conv = nn.Sequential(nn.Conv2d(in_channels, out_channels,3, bias=False))
 
     def func_to_measure():
