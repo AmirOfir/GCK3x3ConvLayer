@@ -9,7 +9,7 @@ import timeit
 import time
 
 repeat_count = 20
-device = 'cuda:1'
+device = 'cuda:0'
 def compareTimes(batch_size: int, in_channels: int, out_channels: int, input_dim: int):
     input = torch.randn(batch_size, in_channels, input_dim, input_dim, requires_grad=False, dtype=torch.float32).contiguous().to(device)
     kernel = torch.randn(out_channels, in_channels, 3, 3,requires_grad=False, dtype=torch.float32).to(device)
