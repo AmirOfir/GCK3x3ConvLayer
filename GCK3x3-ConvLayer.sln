@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GPU-PyTorch-Ext", "GPU-PyTo
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "GPU-PyTorch-Ext-Py", "GPU-PyTorch-Ext\GPU-PyTorch-Ext-Py.pyproj", "{791518BB-F69D-4DED-ACE4-5275346E1E70}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GPU-Layer", "GPU-Layer\GPU-Layer.vcxproj", "{8AF105DF-F6CE-434B-BF66-AD28F7544157}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,12 @@ Global
 		{791518BB-F69D-4DED-ACE4-5275346E1E70}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{791518BB-F69D-4DED-ACE4-5275346E1E70}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{791518BB-F69D-4DED-ACE4-5275346E1E70}.Release|x64.ActiveCfg = Release|Any CPU
+		{8AF105DF-F6CE-434B-BF66-AD28F7544157}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{8AF105DF-F6CE-434B-BF66-AD28F7544157}.Debug|x64.ActiveCfg = Debug|x64
+		{8AF105DF-F6CE-434B-BF66-AD28F7544157}.Debug|x64.Build.0 = Debug|x64
+		{8AF105DF-F6CE-434B-BF66-AD28F7544157}.Release|Any CPU.ActiveCfg = Release|x64
+		{8AF105DF-F6CE-434B-BF66-AD28F7544157}.Release|x64.ActiveCfg = Release|x64
+		{8AF105DF-F6CE-434B-BF66-AD28F7544157}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
