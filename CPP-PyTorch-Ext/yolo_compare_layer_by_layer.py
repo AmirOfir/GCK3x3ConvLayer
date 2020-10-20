@@ -9,8 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from gck_cpu_cpp import conv_fwd_3x3
 from gck_layer import GCK3x3Layer
-repeat_count = 20
-
+repeat_count = 100
 
 
 def compareTimes(batch_size: int, in_channels: int, out_channels: int, input_dim: int, limit_lowend: bool=False):
@@ -20,31 +19,32 @@ def compareTimes(batch_size: int, in_channels: int, out_channels: int, input_dim
     linCombs = torch.randn(out_channels, in_channels * 9, requires_grad=False, dtype=torch.float32).contiguous()
     basisResultsTensor = torch.randn(in_channels*9, (input_dim-2)**2, requires_grad=False, dtype=torch.float32).contiguous()
     kernel = torch.randn(out_channels, in_channels, 3, 3,requires_grad=False, dtype=torch.float32)
-    conv = nn.Sequential(nn.Conv2d(in_channels, out_channels,3, bias=False))
+    conv = nn.Sequential(nn.Conv2d(in_channels, out_channels,3, bias=False, padding=1))
+    conv.eval()
 
-    # It is running winograd no worries
+    # It is running winograd. Double checked the code. no worries.
     def func_to_measure():
-        x = F.conv2d(input, kernel)
+        x = conv(input) # F.conv2d(input, kernel)
         del x
     duration = timeit.repeat(func_to_measure, repeat=repeat_count, number=1)
-    durationWino = round(np.mean(duration),5)
+    durationWino = round(np.mean(duration[1:]),5)
     gc.collect()
 
-    gckLayer = GCK3x3Layer(in_channels, out_channels, 3, False, input_dim - 2, kernel)
+    gckLayer = GCK3x3Layer(in_channels, out_channels, result_dim=input_dim, kernel_size=3, bias=False, padding=1, kernels=kernel)
 
     def func_to_measure():
         x = gckLayer.forward(input)
         #x = conv_fwd_3x3(input, linCombs, basisResultsTensor)
         del x
     duration = timeit.repeat(func_to_measure, repeat=repeat_count, number=1)
-    durationGCK = round(np.mean(duration),5)
+    durationGCK = round(np.mean(duration[1:]),5)
     gc.collect()
 
     def func_to_measure():
         x = gckLayer.matmul_only(input)
         del x
     duration = timeit.repeat(func_to_measure, repeat=repeat_count, number=1)
-    durationMatmul = round(np.mean(duration),5)
+    durationMatmul = round(np.mean(duration[1:]),5)
     gc.collect()
 
     del func_to_measure

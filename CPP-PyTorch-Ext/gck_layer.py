@@ -38,12 +38,15 @@ def ResultDim(input_dim, kernel_dim, pad=0, stride=1):
     return int(s)
 
 class GCK3x3Layer(torch.nn.Module):
-    def __init__(self, in_channels:int, out_channels:int, kernel_size:int, bias:bool, result_dim:int, kernels:torch.Tensor=None):
+    def __init__(self, in_channels:int, out_channels:int, result_dim:int, kernel_size:int=3, bias:bool=False, padding:int=0, kernels:torch.Tensor=None):
         super(GCK3x3Layer, self).__init__()
+        if (kernel_size != 3):
+            raise "Supporting only 3x3 kernels"
         self.out_channels = out_channels
+        self.padding = padding
         
         if kernels is None:
-            kernels = torch.randn((out_channels, in_channels, kernel_size, kernel_size), dtype=torch.float32, requires_grad=False)
+            kernels = torch.randn((out_channels, in_channels, 3, 3), dtype=torch.float32, requires_grad=False)
 
         basis = GCKBasisMatrix()
         basis_inv = LinCombPrepareBasis(basis)
@@ -53,18 +56,17 @@ class GCK3x3Layer(torch.nn.Module):
             self.linCombs = self.linCombs.permute(1,0)
         else:
             k = torch.stack([LinCombWeights(basis_inv, kernels[i]) for i in range(len(kernels))])
-            #print('b', k.shape)
             if (k.dim() != 3): k = k.unsqueeze(0)
             self.linCombs = k.permute(0,2,1).reshape(out_channels, in_channels * 9)
-            #print('c', k.shape)
         
         self.linCombs = self.linCombs.contiguous()
         self.linCombs.requires_grad = False
         
         self.rowwiseResults = torch.empty((in_channels * 3, result_dim*(result_dim+2))).contiguous()
         self.colwiseResults = torch.empty((in_channels * 9, result_dim*result_dim)).contiguous()
+
     def forward(self, input: torch.Tensor):
-        result = conv_fwd_3x3(input, self.linCombs, self.rowwiseResults, self.colwiseResults)
+        result = conv_fwd_3x3(input, self.linCombs, self.rowwiseResults, self.colwiseResults, self.padding)
         return result
     def matmul_only(self, input: torch.Tensor):
-        return matmul_only(input, self.linCombs, self.rowwiseResults, self.colwiseResults)
+        return matmul_only(input, self.linCombs, self.rowwiseResults, self.colwiseResults, self.padding)

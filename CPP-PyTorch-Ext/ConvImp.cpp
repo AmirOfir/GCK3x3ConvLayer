@@ -120,18 +120,29 @@ void DeleteArray(DTYPE **arr, int outerArrayDim)
 	delete[] arr;
 }
 
-void ConvolutionRowwise(const DTYPE *input, DTYPE *res[3], const size_t input_dim, const size_t input_size, const size_t result_dim)
+void ConvolutionRowwise(const DTYPE *input, DTYPE *res[3], const size_t input_dim, const size_t input_size, bool singleCellPadding)
 {
     DTYPE a, b, c;
     int reset = input_dim;
     DTYPE *first = res[0];
     DTYPE *second = res[1];
     DTYPE *third = res[2];
-
-    a = input[0];
-    b = input[1];
-    c = input[2];
-    for (size_t i = 3; i < input_size;++i)
+    size_t i;
+    if (singleCellPadding)
+    {
+        a = 0;
+        b = input[0];
+        c = input[1];
+        i = 2;
+    }
+    else
+    {
+        a = input[0];
+        b = input[1];
+        c = input[2];
+        i = 3;
+    }
+    for (; i < input_size;++i)
     {
         *first = (a + b + c);
         ++first;
@@ -143,9 +154,27 @@ void ConvolutionRowwise(const DTYPE *input, DTYPE *res[3], const size_t input_di
         if (i == reset)
         {
             reset += input_dim;
-            a = input[i++];
-            b = input[i++];
-            c = input[i];
+            if (singleCellPadding)
+            {
+                // Manual calculation
+                *first = (b + c);
+                ++first;
+                *second = (-b + c);
+                ++second;
+                *third = (b - c);
+                ++third;
+
+                // Advance current cell
+                a = 0;
+                b = input[i++];
+                c = input[i];
+            }
+            else
+            {
+                a = input[i++];
+                b = input[i++];
+                c = input[i];
+            }
         }
         else 
         {
@@ -159,6 +188,77 @@ void ConvolutionRowwise(const DTYPE *input, DTYPE *res[3], const size_t input_di
     *first = (a + b + c);
     *second = (a - b + c);
     *third = (a + b - c);
+}
+
+void ConvolutionColwiseSingleCellPadding(const DTYPE *input, DTYPE *res[3], const size_t result_dim)
+{
+    DTYPE *first = res[0];
+    DTYPE *second = res[1];
+    DTYPE *third = res[2];
+
+    const DTYPE *line1 = input; // First line of the input (will be used for the second output row)
+    const DTYPE *line2 = input; // First line of the input 
+    const DTYPE *line3 = input + result_dim; // Second line of the input
+    DTYPE a, b, c;
+    size_t col, row;
+    // For the first output
+    for (col = 0; col < result_dim; col++)
+    {
+        b = *line2;
+        c = *line3;
+            
+        *first = (b + c);
+        *second = (- b + c);
+        *third = (b - c);
+
+        ++line2;
+        ++line3;
+
+        ++first;
+        ++second;
+        ++third;
+    }
+
+    // For the following output rows
+    for (row = 1; row < result_dim - 1; row++)
+    {
+        for (col = 0; col < result_dim; col++)
+        {
+            a = *line1;
+            b = *line2;
+            c = *line3;
+            
+            *first = (a + b + c);
+            *second = (a - b + c);
+            *third = (a + b - c);
+
+            ++line1;
+            ++line2;
+            ++line3;
+
+            ++first;
+            ++second;
+            ++third;
+        }
+    }
+
+    // For the last row
+    for (col = 0; col < result_dim; col++)
+    {
+        a = *line1;
+        b = *line2;
+            
+        *first = (a + b);
+        *second = (a - b);
+        *third = (a + b);
+
+        ++line1;
+        ++line2;
+
+        ++first;
+        ++second;
+        ++third;
+    }
 }
 void ConvolutionColwise(const DTYPE *input, DTYPE *res[3], const size_t result_dim)
 {
@@ -204,7 +304,7 @@ void Convolution3x3ToBasis(const DTYPE *input, DTYPE **res, const size_t input_d
     const size_t colwise_size = input_dim * result_dim;
     DTYPE *colResults = new DTYPE[colwise_size * 3]; // input_dim rows, result_dim cols
     DTYPE *colResults1[3] = { colResults, colResults + colwise_size, colResults + colwise_size + colwise_size };
-    ConvolutionRowwise(input, colResults1, input_dim, inputSize, result_dim);
+    ConvolutionRowwise(input, colResults1, input_dim, inputSize, false);
 
     DTYPE *colwiseResults[3][3] = { {res[0], res[1], res[2]}, {res[3], res[4], res[5]}, {res[6], res[7], res[8]} };
     auto a = async(policy, &ConvolutionColwise, colResults1[0], colwiseResults[0], result_dim);

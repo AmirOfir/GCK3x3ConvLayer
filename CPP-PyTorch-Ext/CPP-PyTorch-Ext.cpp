@@ -91,18 +91,23 @@ Installer m;
 // LinCombs shape: (out_channels, in_channels*9). Assumed to be contiguous. (Remember that the set is transposed
 // rowwiseResults shape (in_channels*3, inputDim * resultDim). Assumed to be contiguous. values are discarded
 // colwiseResults shape: (in_channels*9, H*W). Assumed to be contiguous. values are discarded
+// Padding = {0,1}
 torch::Tensor forward(const torch::Tensor &input_tensor, const torch::Tensor &linCombs, torch::Tensor &rowwiseResults, torch::Tensor &colwiseResults, 
-    bool execRowwiseConv, bool execColwiseConv)
+    bool execRowwiseConv, bool execColwiseConv, int padding)
 {
+    // ResultDim explanation: 
+    // General formula: (I - K + 2*P)/S + 1.
+    // Supporting stride=1,kernel=3, padding={0,1} => {padding=0: I-3+1 = I-2}, {padding=1: I-3+2+1=I}
+
 	const torch::Tensor input = input_tensor.contiguous();
     auto options = torch::TensorOptions().dtype(torch::kF32).requires_grad(false);
-
-	//const DTYPE *inpPtr = input.data<DTYPE>();
+    
 	const int batchSize = input.size(0);
 	const int inChannels = input.size(1);
 	const int inputDim = input.size(2);
     const int inputSize = inputDim * inputDim;
-	const int resultDim = inputDim - 2;  // Explanation: (I - K + 2*P)/S + 1 => _{S=1,P=0,K=3} (I -3 + 0)/1 + 1 = I - 2 
+    
+	const int resultDim = padding ? inputDim : inputDim - 2;  
     const int rowwiseResultSize = inputDim * resultDim;
 	const int colwiseResultSize = resultDim * resultDim;
 	const int outChannels = linCombs.size(0);
@@ -121,12 +126,13 @@ torch::Tensor forward(const torch::Tensor &input_tensor, const torch::Tensor &li
             {
                 DTYPE *rowwiseResArr[3] = { rowwiseResultsCurr, rowwiseResultsCurr += rowwiseResultSize, rowwiseResultsCurr += rowwiseResultSize };
                 if (execRowwiseConv)
-                    ConvolutionRowwise(inpPtr, rowwiseResArr, inputDim, inputSize, resultDim);
+                    ConvolutionRowwise(inpPtr, rowwiseResArr, inputDim, inputSize, padding);
                 inpPtr += inputSize;
             }
          });
         
-        // Execute the colwise convolution
+        
+        // Execute the colwise convolution (parallel option)
         torch::parallel_for(0, inChannels * 3, 0, [&](int64_t index, int64_t stop) {
             
             DTYPE *rowwiseResultsCurr = rowwiseResults[index].data<DTYPE>();
@@ -134,13 +140,30 @@ torch::Tensor forward(const torch::Tensor &input_tensor, const torch::Tensor &li
             for (; index < stop; ++index) 
             {
                 DTYPE *colwiseResArr[3] = { colwiseResultsCurr, colwiseResultsCurr += colwiseResultSize, colwiseResultsCurr += colwiseResultSize };
-                if (execColwiseConv)
+                if (execColwiseConv && padding)
+                    ConvolutionColwiseSingleCellPadding(rowwiseResultsCurr, colwiseResArr, resultDim);
+                else if (execColwiseConv)
                     ConvolutionColwise(rowwiseResultsCurr, colwiseResArr, resultDim);
 
                 rowwiseResultsCurr += rowwiseResultSize;
             }
-         });
+        });
 
+        /*
+        // Execute the colwise convolution (non-parallel option)
+        DTYPE *rowwiseResultsCurr = rowwiseResults[0].data<DTYPE>();
+        DTYPE *colwiseResultsCurr = colwiseResults[0].data<DTYPE>();
+        for (int64_t index = 0; index < inChannels * 3; ++index)
+        {
+            DTYPE *colwiseResArr[3] = { colwiseResultsCurr, colwiseResultsCurr += colwiseResultSize, colwiseResultsCurr += colwiseResultSize };
+            if (execColwiseConv && padding)
+                ConvolutionColwiseSingleCellPadding(rowwiseResultsCurr, colwiseResArr, resultDim);
+            else if (execColwiseConv)
+                ConvolutionColwise(rowwiseResultsCurr, colwiseResArr, resultDim);
+
+            rowwiseResultsCurr += rowwiseResultSize;
+        }
+        */
 
 
         /*DTYPE *lastUsedBasisResult = basisResults;
@@ -168,14 +191,14 @@ torch::Tensor forward(const torch::Tensor &input_tensor, const torch::Tensor &li
     return ret;
 }
 
-torch::Tensor conv_fwd_3x3(const torch::Tensor &input_tensor, const torch::Tensor &linCombs, torch::Tensor &rowwiseResults, torch::Tensor &colwiseResults)
+torch::Tensor conv_fwd_3x3(const torch::Tensor &input_tensor, const torch::Tensor &linCombs, torch::Tensor &rowwiseResults, torch::Tensor &colwiseResults, int padding)
 {
-    return forward(input_tensor, linCombs, rowwiseResults, colwiseResults, true, true);
+    return forward(input_tensor, linCombs, rowwiseResults, colwiseResults, true, true, padding);
 }
 
-torch::Tensor matmul_only(const torch::Tensor &input_tensor, const torch::Tensor &linCombs, torch::Tensor &rowwiseResults, torch::Tensor &colwiseResults)
+torch::Tensor matmul_only(const torch::Tensor &input_tensor, const torch::Tensor &linCombs, torch::Tensor &rowwiseResults, torch::Tensor &colwiseResults, int padding)
 {
-    return forward(input_tensor, linCombs, rowwiseResults, colwiseResults, false, false);
+    return forward(input_tensor, linCombs, rowwiseResults, colwiseResults, false, false, padding);
 }
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m)
