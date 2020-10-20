@@ -57,6 +57,8 @@ def compareTimes(batch_size: int, in_channels: int, out_channels: int, input_dim
 
     return durationWino, durationGCK, durationMatmul
 
+print('{batch_size}, {in_channels}, {out_channels}, {input_dim}, duration Winograd, duration matmul, duration GCK, GCK / Winograd')
+
 cross = []
 # YOLO-LITE
 cross.append((1,3,16,224))
@@ -66,7 +68,36 @@ cross.append((1,64,128,28))
 cross.append((1,128,128,14))
 cross.append((1,128,256,7))
 
+print('YOLO-LITE')
+for (batch_size, in_channels, out_channels, input_dim) in cross:
+    durationWino, durationGCK, durationMatmul = compareTimes(batch_size, in_channels, out_channels, input_dim)
+    diff = round(durationWino - durationGCK, 5)
+    per = round((durationGCK / durationWino) * 100, 5)
+
+    print(f'{batch_size}, {in_channels}, {out_channels}, {input_dim}, {durationWino}, {durationMatmul}, {durationGCK}, {per}%, ')
+
+# Tiny-YOLOV3
+cross=[]
+cross.append((1,3,16,418))
+cross.append((1,16,32,210))
+cross.append((1,32,64,106))
+cross.append((1,64,128,54))
+cross.append((1,128,256,28))
+cross.append((1,256,512,15))
+cross.append((1,512,1024,8))
+cross.append((1,1024,1024,8))
+
+print('Tiny-YOLO')
+for (batch_size, in_channels, out_channels, input_dim) in cross:
+    durationWino, durationGCK, durationMatmul = compareTimes(batch_size, in_channels, out_channels, input_dim)
+    diff = round(durationWino - durationGCK, 5)
+    per = round((durationGCK / durationWino) * 100, 5)
+
+    print(f'{batch_size}, {in_channels}, {out_channels}, {input_dim}, {durationWino}, {durationMatmul}, {durationGCK}, {per}%, ')
+
+
 # YoloV3
+cross=[]
 cross.append((1,3,32,416))
 cross.append((1,32,64,208))
 cross.append((1,64,32,104))
@@ -79,7 +110,7 @@ cross.append((1,256,512,7))
 cross.append((1,512,512,7))
 cross.append((1,512,1024,7))
 
-print('{batch_size}, {in_channels}, {out_channels}, {input_dim}, duration Winograd, duration matmul, duration GCK, GCK / Winograd')
+print('YoloV3')
 for (batch_size, in_channels, out_channels, input_dim) in cross:
     durationWino, durationGCK, durationMatmul = compareTimes(batch_size, in_channels, out_channels, input_dim)
     diff = round(durationWino - durationGCK, 5)

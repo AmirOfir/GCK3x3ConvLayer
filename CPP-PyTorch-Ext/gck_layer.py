@@ -39,6 +39,7 @@ def ResultDim(input_dim, kernel_dim, pad=0, stride=1):
 
 class GCK3x3Layer(torch.nn.Module):
     def __init__(self, in_channels:int, out_channels:int, kernel_size:int, bias:bool, result_dim:int, kernels:torch.Tensor=None):
+        super(GCK3x3Layer, self).__init__()
         self.out_channels = out_channels
         
         if kernels is None:

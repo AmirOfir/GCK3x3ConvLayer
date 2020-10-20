@@ -53,6 +53,9 @@
     <Compile Include="yolo_compare.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="yolo_compare_layer_by_layer.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>
