@@ -141,13 +141,13 @@ torch::Tensor forward(const torch::Tensor &input_tensor, const torch::Tensor &li
             {
                 DTYPE *colwiseResArr[3] = { colwiseResultsCurr, colwiseResultsCurr += colwiseResultSize, colwiseResultsCurr += colwiseResultSize };
                 if (execColwiseConv && padding)
-                    ConvolutionColwiseSingleCellPadding(rowwiseResultsCurr, colwiseResArr, resultDim);
+                    ConvolutionColwiseSingleCellPadding(rowwiseResultsCurr, colwiseResArr, resultDim, colwiseResultSize);
                 else if (execColwiseConv)
                     ConvolutionColwise(rowwiseResultsCurr, colwiseResArr, resultDim);
 
                 rowwiseResultsCurr += rowwiseResultSize;
             }
-        });
+        });/**/
 
         /*
         // Execute the colwise convolution (non-parallel option)
@@ -157,13 +157,14 @@ torch::Tensor forward(const torch::Tensor &input_tensor, const torch::Tensor &li
         {
             DTYPE *colwiseResArr[3] = { colwiseResultsCurr, colwiseResultsCurr += colwiseResultSize, colwiseResultsCurr += colwiseResultSize };
             if (execColwiseConv && padding)
-                ConvolutionColwiseSingleCellPadding(rowwiseResultsCurr, colwiseResArr, resultDim);
+                ConvolutionColwiseSingleCellPadding(rowwiseResultsCurr, colwiseResArr, resultDim, colwiseResultSize);
             else if (execColwiseConv)
                 ConvolutionColwise(rowwiseResultsCurr, colwiseResArr, resultDim);
 
             rowwiseResultsCurr += rowwiseResultSize;
         }
-        */
+        /**/
+        
 
 
         /*DTYPE *lastUsedBasisResult = basisResults;

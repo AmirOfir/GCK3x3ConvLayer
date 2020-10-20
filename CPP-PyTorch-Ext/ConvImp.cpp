@@ -122,6 +122,8 @@ void DeleteArray(DTYPE **arr, int outerArrayDim)
 
 void ConvolutionRowwise(const DTYPE *input, DTYPE *res[3], const size_t input_dim, const size_t input_size, bool singleCellPadding)
 {
+    // The convolutions are [1,1,1]T, [1,-1,1]T, [1,1,-1]T.
+    
     DTYPE a, b, c;
     int reset = input_dim;
     DTYPE *first = res[0];
@@ -190,11 +192,93 @@ void ConvolutionRowwise(const DTYPE *input, DTYPE *res[3], const size_t input_di
     *third = (a + b - c);
 }
 
-void ConvolutionColwiseSingleCellPadding(const DTYPE *input, DTYPE *res[3], const size_t result_dim)
+void ConvolutionColwiseSingleCellPadding(const DTYPE *input, DTYPE *res[3], const size_t result_dim, const size_t result_size)
 {
+    // The input size is input_dim x input_dim (eq result_dim x result_dim) and we have another two rows hidden, filled with zeros
+    // The convolutions are [1,1,1]T, [1,1,-1]T, [1,-1,1]T.
+    
+    // Execute the first convolution
     DTYPE *first = res[0];
     DTYPE *second = res[1];
     DTYPE *third = res[2];
+    const DTYPE *tmp;
+
+    // Execute the convolution with the second parameter (1,1,-1) on the first & second results (copy)
+    memcpy(first, input, result_size);
+    memcpy(second, first, result_size);
+
+    // Execute the convolution with the first parameter (1,1,1) on the third result (copy)
+    memcpy(third + result_dim, second, result_size - result_dim);
+    memset(third, 0, result_dim);
+
+    // Execute the convolution with the first parameter (1,1,1) on the first & second result (add)
+    std::transform(first + result_dim,  first + result_size,  first,  first + result_dim,  std::plus<float>());
+    std::transform(second + result_dim, second + result_size, second, second + result_dim, std::plus<float>());
+    
+    // Execute the convolution with the second parameter (1,1,-1) on the third result (substract)
+    std::transform(third, third + result_size - result_dim, third + result_dim, third, std::minus<DTYPE>());
+
+    // Execute the convolution with the third parameter (1,1,-1)
+    int lastForThirdParameter = result_size - result_dim;
+    tmp = input + result_dim + result_dim;
+    for (size_t i = 0; i < lastForThirdParameter; ++i)
+        first[i] += *tmp++;
+    tmp = input + result_dim + result_dim;
+    for (size_t i = 0; i < lastForThirdParameter; ++i)
+        second[i] -= *tmp++;
+    tmp = input + result_dim + result_dim;        
+    for (size_t i = 0; i < lastForThirdParameter; ++i)
+        third[i] += *tmp++;
+    /*std::transform(first,  first + lastForThirdParameter,  input+result_dim, first, std::plus<DTYPE>());
+    std::transform(second, second + lastForThirdParameter, input+result_dim, second,std::plus<DTYPE>());
+    std::transform(third,  third + lastForThirdParameter,  input+result_dim, third, std::minus<DTYPE>());*/
+    /**/
+    
+
+    // Execute the convolution with the second parameter (1,-1,1) on the second result
+    /*tmp= input;
+    while (second != third)
+        *second++ =- *tmp++;*/
+    /*
+    // Execute the convolution with the first parameter (+1)
+    size_t input_ix, result_ix;
+    // Fill the first line with zeros
+    memset(first, 0, result_dim);
+    memset(second, 0, result_dim);
+    memset(third, 0, result_dim);
+    
+    // Fill the next lines with the input
+    memcpy(first + result_dim, input, result_size - result_dim);
+    memcpy(second + result_dim, input, result_size - result_dim);
+    memcpy(third + result_dim, input, result_size - result_dim);
+    
+    // Execute the convolution with the second parameter (1,-1,1)
+    // Fill all the lines with the input
+    
+    while (first != second)
+        *first++ += *tmp++;
+    tmp = input;
+    while (second != third)
+        *second++ -= *tmp++;
+    tmp = input;
+    first = third + result_size;
+    while (third != first)
+        *third++ += *tmp++;
+        */
+    /*
+    for (result_ix=0; result_ix < result_size; ++result_ix)
+        first[result_ix] += input[result_ix];
+    for (result_ix=0; result_ix < result_size; ++result_ix)
+        second[result_ix] += -input[result_ix];
+    for (result_ix=0; result_ix < result_size; ++result_ix)
+        third[result_ix] += input[result_ix];
+        */
+
+
+    /*
+    first = res[0];
+    second = res[1];
+    third = res[2];
 
     const DTYPE *line1 = input; // First line of the input (will be used for the second output row)
     const DTYPE *line2 = input; // First line of the input 
@@ -259,6 +343,7 @@ void ConvolutionColwiseSingleCellPadding(const DTYPE *input, DTYPE *res[3], cons
         ++second;
         ++third;
     }
+    */
 }
 void ConvolutionColwise(const DTYPE *input, DTYPE *res[3], const size_t result_dim)
 {
