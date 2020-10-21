@@ -42,6 +42,10 @@ class GCK3x3Layer(torch.nn.Module):
         super(GCK3x3Layer, self).__init__()
         if (kernel_size != 3):
             raise "Supporting only 3x3 kernels"
+        if (bias):
+            raise "Not supporting bias"
+        self.in_channels = in_channels
+        self.result_dim = result_dim
         self.out_channels = out_channels
         self.padding = padding
         
@@ -62,11 +66,28 @@ class GCK3x3Layer(torch.nn.Module):
         self.linCombs = self.linCombs.contiguous()
         self.linCombs.requires_grad = False
         
-        self.rowwiseResults = torch.empty((in_channels * 3, result_dim*(result_dim+2))).contiguous()
-        self.colwiseResults = torch.empty((in_channels * 9, result_dim*result_dim)).contiguous()
+        if (result_dim == 0):
+            self.rowwiseResults = None
+        else:
+            self.rowwiseResults = torch.empty((in_channels * 3, result_dim*(result_dim+2))).contiguous()
+            self.colwiseResults = torch.empty((in_channels * 9, result_dim*result_dim)).contiguous()
 
     def forward(self, input: torch.Tensor):
+        if (self.rowwiseResults == None):
+            if (self.padding == 0):
+                result_dim = input.shape[-1]-2
+            else:
+                result_dim = input.shape[-1]
+            self.result_dim = result_dim
+            self.rowwiseResults = torch.empty((self.in_channels * 3, result_dim*(result_dim+2))).contiguous()
+            self.colwiseResults = torch.empty((self.in_channels * 9, result_dim*result_dim)).contiguous()
+        
         result = conv_fwd_3x3(input, self.linCombs, self.rowwiseResults, self.colwiseResults, self.padding)
+        
         return result
+    
     def matmul_only(self, input: torch.Tensor):
         return matmul_only(input, self.linCombs, self.rowwiseResults, self.colwiseResults, self.padding)
+    
+    def extra_repr(self):
+        return f'FastConv({self.in_channels}, {self.out_channels}, kernel_size=(3,3), stride=(1,1), padding=({self.padding},{self.padding}), bias=False, result_dim={self.result_dim}';
