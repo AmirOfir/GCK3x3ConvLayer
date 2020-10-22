@@ -28,12 +28,12 @@ static int getGradParamsNumThreads(int batchSize){
 }
 
 
-__global__ void ConvolutionRowwise(const float *input, float *colwiseResults, int batch_ix,
+__global__ void ConvolutionRowwise(const float *input, float *rowwiseResults, int batch_ix,
     int channel_ix,
     int input_dim,
     int result_dim )
 {
-    float* res1 = colwiseResults + (blockIdx.x * result_dim);
+    float* res1 = rowwiseResults + (blockIdx.x * result_dim);
     float* res2 = res1 + (input_dim * result_dim);
     float* res3 = res2 + (input_dim * result_dim);
 
@@ -59,7 +59,26 @@ __global__ void ConvolutionRowwise(const float *input, float *colwiseResults, in
     *res3 = (l1 + l2 - l3);
 }
 
+__global__ void ConvolutionColwise(const float *rowwiseResults, float *colwiseResults, int inputDim, int resultDim)
+{
+    // blockDim
+    // Z tells us which rowwiseResults matrix to work on {0,1,2}
+    // X tells us the rowwiseResults matrix top-row
+    // Y tells us the rowwiseResults matrix col
 
+    int topCell = (blockIdx.z *inputDim*resultDim) + (blockIdx.x * resultDim) + blockIdx.y;
+    float l1 = rowwiseResults[topCell];
+    float l2 = rowwiseResults[topCell + resultDim];
+    float l3 = rowwiseResults[topCell + resultDim + resultDim];
+    
+    topCell = (blockIdx.z * resultDim * resultDim * 3) + (blockIdx.x * resultDim) + blockIdx.y;
+    colwiseResults[topCell] = l1 + l2 + l3;
+    topCell += resultDim * resultDim;
+    colwiseResults[topCell] = l1 - l2 + l3;
+    topCell += resultDim * resultDim;
+    colwiseResults[topCell] = l1 + l2 - l3;
+
+}
 #pragma endregion
 
 #pragma region Misc
@@ -124,27 +143,31 @@ int main()
     std::cout << std::setfill('0') << std::setw(5) << std::fixed << std::setprecision(1);
     zip(batchSizes, inputChannels, outputChannels, inputDims,
         [](int batchIndex, int inputChannel, int outputChannel, int inputDim) {
-            float *colwiseResults;
+            float *rowwiseResults;
             int resultDim = inputDim - 2;
-            int colwiseResultsSize = 3 * inputDim * resultDim;
-            cudaMallocManaged(&colwiseResults, colwiseResultsSize);
+            int rowwiseResultsSize = 3 * inputDim * resultDim;
+            cudaMallocManaged(&rowwiseResults, rowwiseResultsSize);
             
-            for (size_t i = 0; i < colwiseResultsSize; i++)
-            {
-                colwiseResults[i] = 1;
-            }
-            PrintMat(colwiseResults, inputDim, resultDim); cout << endl;
-            PrintMat(colwiseResults + inputDim * resultDim, inputDim, resultDim); cout << endl;
-            PrintMat(colwiseResults + (2 * (inputDim * resultDim)), inputDim, resultDim); cout << endl;
-
             float *arr = CreateArray(inputDim * inputDim);
             dim3 grid(inputDim);
-            ConvolutionRowwise <<< grid, 1 >>> (arr, colwiseResults, batchIndex, inputChannel, inputDim, resultDim);
+            ConvolutionRowwise <<< grid, 1 >>> (arr, rowwiseResults, batchIndex, inputChannel, inputDim, resultDim);
+            cudaDeviceSynchronize();
+            PrintMat(rowwiseResults, inputDim, resultDim); cout << endl;
+            PrintMat(rowwiseResults + inputDim * resultDim, inputDim, resultDim); cout << endl;
+            PrintMat(rowwiseResults + (2 * (inputDim * resultDim)), inputDim, resultDim); cout << endl;
+
+            float *colResults;
+            cudaMallocManaged <float>(&colResults, 9 * resultDim * resultDim);
+            grid = dim3(resultDim, resultDim, 3);
+            ConvolutionColwise <<< grid, 1 >>> (rowwiseResults, colResults, inputDim, resultDim);
             cudaDeviceSynchronize();
 
-            PrintMat(colwiseResults, inputDim, resultDim); cout << endl;
-            PrintMat(colwiseResults + inputDim * resultDim, inputDim, resultDim); cout << endl;
-            PrintMat(colwiseResults + (2 * (inputDim * resultDim)), inputDim, resultDim); cout << endl;
+            for (int i = 0; i < 9; i++)
+            {
+                PrintMat(colResults + (i*resultDim*resultDim), inputDim, resultDim); cout << endl;
+            }
+            
+            
         });
     
     

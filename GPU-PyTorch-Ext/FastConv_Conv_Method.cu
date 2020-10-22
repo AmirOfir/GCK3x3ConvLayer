@@ -1,4 +1,5 @@
-#include "GCK-Conv-Method.cuh"
+#include "FastConv_Conv_Method.cuh"
+
 #include <THC/THCNumerics.cuh>
 #include <THC/THCReduceApplyUtils.cuh>
 #include <THCUNN/SharedMem.cuh>
@@ -8,7 +9,6 @@
 #include <THC/THCAtomics.cuh>
 #include <THC/THCDeviceUtils.cuh>
 
-#define CHECK_CUDA(x) AT_ASSERTM(x.type().is_cuda(), #x " must be a CUDA tensor")
 
 const int WARP_SIZE = 32;
 // Crude benchmarks suggest 256 is better than 512 and 1024
@@ -24,6 +24,7 @@ static int getGradParamsNumThreads(int batchSize){
     return std::min(batchSize * WARP_SIZE, MAX_BLOCK_SIZE);    
 }
 
+/*
 template <typename T>
 __global__ void ConvolutionRowwise(const T *input, T *colwiseResults, int batch_ix,
     int channel_ix,
@@ -35,7 +36,37 @@ __global__ void ConvolutionRowwise(const T *input, T *colwiseResults, int batch_
     T* res2 = res1 + (input_dim * result_dim);
     T* res3 = res2 + (input_dim * result_dim);
 }
+*/
+__global__ void ConvolutionRowwise(const float *input, float *rowwiseResults, int batch_ix,
+    int channel_ix,
+    int input_dim,
+    int result_dim )
+{
+    float* res1 = rowwiseResults + (blockIdx.x * result_dim);
+    float* res2 = res1 + (input_dim * result_dim);
+    float* res3 = res2 + (input_dim * result_dim);
 
+    input = input + (blockIdx.x * input_dim);
+    float l1 = input[0],
+        l2 = input[1],
+        l3 = input[2];
+    for (int i = 3; i < input_dim; ++i)
+    {
+        *res1 = (l1 + l2 + l3);
+        ++res1;
+        *res2 = (l1 - l2 + l3);
+        ++res2;
+        *res3 = (l1 + l2 - l3);
+        ++res3;
+        l1 = l2;
+        l2 = l3;
+        l3 = input[i];
+    }
+
+    *res1 = (l1 + l2 + l3);
+    *res2 = (l1 - l2 + l3);
+    *res3 = (l1 + l2 - l3);
+}
 
 void Convolution3x3ToBasis(
     const torch::Tensor &input, /* Input channel*/
@@ -46,16 +77,13 @@ void Convolution3x3ToBasis(
     int input_dim,
     int result_dim)
 {
-    AT_ASSERTM(input.type().is_cuda(), "input must be a CUDA tensor");
-    AT_ASSERTM(colwiseResults.type().is_cuda(), "colwiseResults must be a CUDA tensor");
-    AT_ASSERTM(basisResultsTensor.type().is_cuda(), "basisResultsTensor must be a CUDA tensor");
     cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
     // One thread per output value
-  int nthreads = input_dim;
-  int blocks = GET_BLOCKS(nthreads);
-  dim3 grid(blocks);
-  dim3 block(CUDA_NUM_THREADS);
+    int nthreads = input_dim;
+    int blocks = GET_BLOCKS(nthreads);
+    dim3 grid(blocks);
+    dim3 block(CUDA_NUM_THREADS);
   
   AT_DISPATCH_FLOATING_TYPES(input.type(), "Convolution3x3ToBasis", [&] {
     ConvolutionRowwise <<<grid, block, 0, stream>>>

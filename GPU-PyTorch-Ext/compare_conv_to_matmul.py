@@ -7,7 +7,7 @@ import numpy.linalg as l
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from GCK_GPU_CPP import matmul_only
+from FastConv_Gpu import matmul_only
 
 repeat_count = 10
 

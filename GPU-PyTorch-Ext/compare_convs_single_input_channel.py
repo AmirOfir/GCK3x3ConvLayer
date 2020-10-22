@@ -7,7 +7,7 @@ import numpy.linalg as l
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from GCK_GPU_CPP import conv_fwd_3x3
+from FastConv_Gpu import conv_fwd_3x3
 
 repeat_count = 10
 

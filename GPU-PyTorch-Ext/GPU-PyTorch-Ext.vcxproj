@@ -78,15 +78,14 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CudaCompile Include="GCK-Conv-Method.cu" />
+    <CudaCompile Include="FastConv_Conv_Method.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GCK-Encap.cpp" />
     <ClCompile Include="GPU-PyTorch-Ext.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GCK-Conv-Method.cuh" />
+    <ClInclude Include="FastConv_Conv_Method.cuh" />
     <ClInclude Include="GPU_PyTorch-Ext.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

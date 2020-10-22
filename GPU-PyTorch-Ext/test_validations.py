@@ -5,7 +5,7 @@ import torch
 import torch.nn.functional as F
 import timeit
 import time
-from GCK_GPU_CPP import matmul_only, conv_fwd_3x3
+from FastConv_Gpu import matmul_only, conv_fwd_3x3
 
 kernel_dim = 3
 

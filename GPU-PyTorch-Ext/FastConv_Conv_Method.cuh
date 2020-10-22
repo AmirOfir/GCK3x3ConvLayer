@@ -4,7 +4,7 @@
 //#define DTYPE float
 #include <torch/extension.h>
 #include <vector>
-
+#include <algorithm>
 
 void Convolution3x3ToBasis(
     const torch::Tensor &input, /* Input channel*/

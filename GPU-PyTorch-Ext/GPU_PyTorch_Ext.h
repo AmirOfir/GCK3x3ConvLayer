@@ -3,7 +3,7 @@
 #include <torch/extension.h>
 #include <functional>
 #include <vector>
-#include "GCK-Conv-Method.cuh"
+#include "FastConv_Conv_Method.cuh"
 
 #ifdef VSA
 namespace torch
@@ -99,6 +99,11 @@ torch::Tensor forward(
     const int resultSize        = resultDim * resultDim;
     const int outChannels       = linCombs.size(0);
 
+    AT_ASSERTM(input.type().is_cuda(), "input must be a CUDA tensor");
+    AT_ASSERTM(colwiseResults.type().is_cuda(), "colwiseResults must be a CUDA tensor");
+    AT_ASSERTM(basisResultsTensor.type().is_cuda(), "basisResultsTensor must be a CUDA tensor");
+    cudaStream_t stream = at::cuda::getCurrentCUDAStream();
+
     // Create output
     auto options = torch::TensorOptions().dtype(torch::kF32).requires_grad(false).device(input.device());
     auto resultTensor = torch::empty({ batchSize, outChannels, resultSize }, options);
@@ -109,7 +114,7 @@ torch::Tensor forward(
         for (int c_ix = 0; c_ix < inChannels; c_ix++)
         {
             if (applyConvolution)
-                Convolution3x3ToBasis(input, colwiseResults, basisResultsTensor, b_ix, c_ix, inputDim, resultDim);
+                Convolution3x3ToBasis(input.data<float>(), colwiseResults.data<float>(), basisResultsTensor.data<float>(), b_ix, c_ix, inputDim, resultDim);
         }
        
         auto batchResults = torch::matmul_out(resultTensor[b_ix], linCombs, basisResultsTensor);

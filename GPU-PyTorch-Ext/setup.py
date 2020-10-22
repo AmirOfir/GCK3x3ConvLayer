@@ -8,14 +8,7 @@ from torch.utils.cpp_extension import CUDA_HOME
 from torch.utils.cpp_extension import CppExtension
 from torch.utils.cpp_extension import CUDAExtension
 
-#from setuptools import setup, Extension
 from torch.utils import cpp_extension
-
-#setup(name='gck_gpu_cpp',
-#      ext_modules=[
-#          CUDAExtension(
-#              'gck_gpu_cpp', ["GPU-PyTorch-Ext.cpp", "GCK-Conv-Method.cu"])],
-#      cmdclass={'build_ext': cpp_extension.BuildExtension})
 
 requirements = ["torch", "torchvision"]
 
@@ -52,7 +45,7 @@ def get_extensions():
     
     ext_modules = [
         extension(
-            "GCK_GPU_CPP",
+            "FastConv_Gpu",
             sources,
             include_dirs=include_dirs,
             define_macros=define_macros,
@@ -64,10 +57,28 @@ def get_extensions():
 
 
 setup(
-    name="gck_gpu_cpp",
+    name="FastConv_Gpu",
     version="0.1",
-    author="Amir_Ofir",
-    description="GCK 3x3 GPU implementation in pytorch",
+    author="Amir Ofir",
+    description="FastConv gpu implementation in pytorch",
     ext_modules=get_extensions(),
     cmdclass={"build_ext": torch.utils.cpp_extension.BuildExtension},
 )
+
+
+# Guide for reasons it will not compile:
+# 1. cast.h(1393): error: expression must be a pointer to a complete object type ->
+#      Open cast.h
+#      Replace "explicit operator type&() { return *(this->value); }" with "explicit operator type&() { *((type *)(this->value)); }""
+#
+# 2. module.h(483): error: a member with an in-class initializer must be const ->
+#      Open c10/macros/Macros.h
+#      Find #if defined(_MSC_VER) && defined(__CUDACC__)
+#           #define CONSTEXPR_EXCEPT_WIN_CUDA
+#           #define C10_HOST_CONSTEXPR_EXCEPT_WIN_CUDA __host__
+#      Set  #define CONSTEXPR_EXCEPT_WIN_CUDA const
+#      Find #if defined(_MSC_VER) && defined(__CUDACC__)
+#           #define CONSTEXPR_EXCEPT_WIN_CUDA
+#           #define C10_HOST_CONSTEXPR_EXCEPT_WIN_CUDA
+#      Set  #define CONSTEXPR_EXCEPT_WIN_CUDA const
+

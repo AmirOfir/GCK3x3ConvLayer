@@ -15,20 +15,17 @@
     <ClCompile Include="GPU-PyTorch-Ext.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GCK-Encap.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="kernel.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
-    <CudaCompile Include="GCK-Conv-Method.cu">
+    <CudaCompile Include="FastConv_Conv_Method.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GCK-Conv-Method.cuh">
+    <ClInclude Include="FastConv_Conv_Method.cuh">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
