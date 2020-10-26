@@ -62,7 +62,8 @@ __global__ void ConvolutionRowwise(const T *input, T *rowwiseResults,
     // Copy to shared memory
     T inputCellValue = input[col + row + (input_dim * (blockIdx.x * (blockDim.x-2)))];
     s[row + col] = inputCellValue;
-
+    s[row + col +  + input_size] = inputCellValue;
+    s[row + col +  + input_size + input_size] = inputCellValue;
     __syncthreads();
     return;
     // Compute rowwise-convolution into shared memory
