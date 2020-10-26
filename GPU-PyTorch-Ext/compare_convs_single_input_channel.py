@@ -16,29 +16,34 @@ def compareTimes(batch_size: int, in_channels: int, out_channels: int, input_dim
     input = torch.randn(batch_size, in_channels, input_dim, input_dim, requires_grad=False, dtype=torch.float32).cuda().contiguous()
 
     kernel = torch.randn(out_channels, in_channels, 3, 3,requires_grad=False, dtype=torch.float32).cuda()
-    def func_to_measure():
+    durationConv = 0
+    for _ in range(1000):
+        start = time.time()
         x = F.conv2d(input, kernel)
+        torch.cuda.synchronize()
+        durationConv += time.time() - start
         del x
-    duration = timeit.repeat(func_to_measure, repeat=repeat_count, number=1)
-    durationConv = round(np.mean(duration),5)
+    durationConv = durationConv * 1e6/1e5
     del kernel
     gc.collect()
 
     # Helpers
     basisResultsTensor = torch.empty(in_channels*9, (input_dim-2)**2, requires_grad=False, dtype=torch.float32).cuda().contiguous()
-    colwiseResults = torch.empty(3, input_dim * result_dim, requires_grad=False, dtype=torch.float32).cuda().contiguous()
-
+    colwiseResults = torch.empty(3, input_dim * input_dim, requires_grad=False, dtype=torch.float32).cuda().contiguous()
     linCombs = torch.randn(out_channels, in_channels * 9, requires_grad=False, dtype=torch.float32).cuda().contiguous()
-    x = conv_fwd_3x3(input, linCombs, basisResultsTensor, colwiseResults)
-    del x
-    def func_to_measure():
+    
+    # Warmup
+    x = conv_fwd_3x3(input, linCombs, basisResultsTensor, colwiseResults); torch.cuda.synchronize(); del x
+    
+    durationMatmul = 0
+    for _ in range(1000):
+        start = time.time()
         x = conv_fwd_3x3(input, linCombs, basisResultsTensor, colwiseResults)
+        torch.cuda.synchronize()
+        durationMatmul += time.time() - start
         del x
-    duration = timeit.repeat(func_to_measure, repeat=repeat_count, number=1)
-    durationMatmul = round(np.mean(duration),5)
-    gc.collect()
-
-    del func_to_measure
+    durationMatmul = durationMatmul * 1e6/1e5
+    
     del linCombs
     del input
     del basisResultsTensor

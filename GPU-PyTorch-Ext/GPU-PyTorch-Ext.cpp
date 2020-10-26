@@ -38,7 +38,9 @@ torch::Tensor forward(
         for (int c_ix = 0; c_ix < inChannels; c_ix++)
         {
             if (applyConvolution)
-                Convolution3x3ToBasis(input, colwiseResults, basisResultsTensor/*.data<float>()*/, b_ix, c_ix, inputDim, resultDim);
+            {
+                Convolution3x3ToBasis(input, colwiseResults, basisResultsTensor/*.data<float>()*/, b_ix, c_ix, inputDim, resultDim, inputSize);
+            }
         }
        
         auto batchResults = torch::matmul_out(resultTensor[b_ix], linCombs, basisResultsTensor);

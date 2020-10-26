@@ -11,3 +11,6 @@ x64/
 /CPP-PyTorch-Ext/__pycache__
 /GPU-PyTorch-Ext/gck_gpu_cpp.egg-info
 /GPU-PyTorch-Ext/.vscode
+__pycache__/
+.vscode/
+*.egg-info

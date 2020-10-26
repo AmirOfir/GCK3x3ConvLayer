@@ -13,6 +13,7 @@ void Convolution3x3ToBasis(
     int batch_ix,
     int channel_ix,
     int input_dim,
-    int result_dim);
+    int result_dim,
+    int input_size);
 
 #endif
